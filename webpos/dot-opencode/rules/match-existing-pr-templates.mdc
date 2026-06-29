@@ -1,0 +1,43 @@
+---
+description: Find and match existing PR description conventions before writing; don't invent new templates
+alwaysApply: true
+---
+
+# Match Existing PR Templates
+
+Before writing a PR description from scratch, **find recent similar PRs in the same repo and match their structure**. Description conventions are repo-specific (section headings, link format, checklist items) and reviewers expect consistency.
+
+## Procedure
+
+1. Identify the PR type — schema-only, data-layer, feature, bugfix, revert, etc.
+2. Find 2-3 recent merged PRs of the same type:
+   ```
+   gh pr list --repo <owner>/<repo> --state merged --search "<keyword>" --limit 5
+   ```
+3. Read their descriptions:
+   ```
+   gh pr view <num> --repo <owner>/<repo> --json title,body
+   ```
+4. Match exactly: section headings, ordering, checklist verbatim, link format, evidence-section convention, **and the typical length of each section**.
+
+If a `docs/PULL_REQUEST_TEMPLATE.md` exists, prefer it as the canonical source. Otherwise the most recent merged PR in the same category is the de facto template.
+
+## Length / verbosity
+
+Match the brevity of the reference PRs, not the maximum the template allows. Recent merged PRs in this codebase are short — a Description is 2–4 sentences, Evidence is a single test reference or one screenshot, Usage is one line. If the reference PRs don't carry a "Reminder", "Background", or "Decision log" section, neither should the new PR.
+
+The reference PR's length is itself a convention to match. A PR description that is 5× longer than the references is just as out-of-template as one with the wrong headings — reviewers notice and read past it.
+
+## Don't
+
+- Don't invent new sections (e.g. "## My recommendation", "## Next steps", "## Considerations", "## Reminder", "## Background").
+- Don't paraphrase the standard checklist — copy it verbatim.
+- Don't drop mandatory sections (Evidence, Usage, Checklist) — write `N/A — <reason>` if a section doesn't apply.
+- Don't reorder sections from the canonical template.
+- Don't pad a section beyond what the reference PRs use. If the reference Description is 2 sentences, don't write 3 paragraphs.
+- Don't restate the JIRA ticket title in the description heading — the link is enough.
+- Don't stack redundant evidence (one screenshot + one test + one API response when one of them already proves the change).
+
+## Real failure this rule prevents
+
+PR #27026 (LSR-37244 schema PR) was opened with a freeform description. The two reference PRs (#26949 / #26950) were schema-only PRs from the same initiative, with a clear template: `# **JIRA Ticket: [LSR-XXXXX](url)**` header, Description / Evidence / Usage sections, 6-item verbatim checklist, reference-style link footer. The deviation was caught by review; the description had to be rewritten. Looking at #26949 / #26950 first would have prevented it.

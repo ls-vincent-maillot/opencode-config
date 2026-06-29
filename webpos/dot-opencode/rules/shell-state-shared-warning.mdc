@@ -1,0 +1,29 @@
+---
+description: Shell state (working directory, current branch) is shared across tool calls and user terminals
+alwaysApply: true
+---
+
+# Shell State Is Shared
+
+The shell session used by tool calls is **shared with the user's other terminals**. The current working directory and current branch can change between tool calls without warning — the user may switch branches in another terminal while you're working, or you may have moved earlier in the session.
+
+## Always re-verify before branch-sensitive operations
+
+Before `git commit`, `git push`, `gh pr create`, `gh pr merge`, or any other operation that depends on the current branch or working directory:
+
+```bash
+# Cheap sanity check — run it inline at the top of the command
+[ "$(git branch --show-current)" = "<expected-branch>" ] || { echo "WRONG BRANCH — aborting"; exit 1; }
+```
+
+## Real failures this rule prevents
+
+- **May 14 — commit on `develop-retail`**: I cherry-picked a Patrick-feedback commit while the shell had drifted from `LSR-37242-Data-layer-cust-e-invoicing` to `develop-retail` because the user had been on a different feature branch in another terminal. The commit landed on `develop-retail` instead of the feature branch.
+
+- **May 19 — stale-working-tree docs PR**: My local `/Volumes/dev/r-series-core-docs/main` checkout had drifted from `origin/main` in the file tree (not the HEAD). `git pull --rebase` reported "Already up to date" but the working file was a week old. A `StrReplace` was added on top, and the commit captured 9 unintended PR-#83 reversions along with the intended one-line change.
+
+## When you spot drift
+
+- Print branch + status before doing anything destructive.
+- If the working tree has unexpected modifications you didn't make, `git reset --hard origin/<your-branch>` and re-apply intentionally.
+- Don't trust `git pull --rebase` "Already up to date" as proof of cleanliness — it doesn't check uncommitted working-tree drift.

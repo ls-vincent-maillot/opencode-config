@@ -1,0 +1,10 @@
+---
+description: When auditing PR review feedback, fetch BOTH inline comments AND top-level reviews — top-level review bodies often carry action items even on APPROVED reviews. Load the pr-thread-audit skill for the full triage workflow.
+alwaysApply: true
+---
+
+# PR Review Coverage
+
+When auditing reviewer feedback on a pull request, **fetch both inline comments and top-level reviews**. Top-level review bodies often carry action items that look like approvals from the badge alone (e.g. an APPROVED review whose body says *"LGTM, please consider adding tests to cover the newly introduced repositories."*).
+
+For the full triage workflow — endpoints, OPEN/REPLIED classification script, stale-vs-new categorisation table, reply commands, and the GraphQL pending-review gotchas — load the [`pr-thread-audit` skill](../skills/pr-thread-audit/SKILL.md).

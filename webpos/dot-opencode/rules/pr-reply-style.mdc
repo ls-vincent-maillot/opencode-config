@@ -1,0 +1,35 @@
+---
+description: PR reply style — short, direct, with commit SHA when applicable
+alwaysApply: true
+---
+
+# PR Reply Style
+
+PR thread replies should be **very short and straight to the point**. Don't restate context the reviewer already knows. When reporting an applied change, include the commit SHA.
+
+## Examples
+
+<good-example>
+"Done in `9da3e0ec4c`. Dropped the `Cached.` sentence and added a class-level note explaining why the repo isn't cached (write-heavy access pattern)."
+</good-example>
+
+<good-example>
+"Applied in `3c93738673` — matches the 65/66 codebase convention for TEXT columns."
+</good-example>
+
+<bad-example>
+"Thank you for the great feedback! I've looked into this carefully and considered several approaches. After reviewing the relevant code, I decided that the best path forward is to rename the method as you suggested. The change has been applied across the interface, both repository implementations, and all related tests. Please let me know if you have any other concerns!"
+</bad-example>
+
+## What to include
+
+- **Action taken** ("Applied", "Done", "Renamed to X", "Reverted because Y")
+- **Commit SHA** when the work landed in a commit
+- **Brief rationale** only when defending a non-obvious decision or pushing back
+
+## What to omit
+
+- Restating the reviewer's concern (they wrote it)
+- Pleasantries / acknowledgements ("Great point!", "Thanks!")
+- Tutorial-style explanations
+- Apologies for not catching it earlier

@@ -1,0 +1,52 @@
+---
+description: Require a source-attribution header comment as the first line of every BigQuery query
+alwaysApply: true
+---
+
+# BigQuery Query Header
+
+Every BigQuery query you write (inline in chat, in a `.sql` file, or staged for someone to run) **must start with a comment line attributing its origin**:
+
+- From a JIRA ticket → `# https://lightspeedhq.atlassian.net/browse/LSR-XXXX` (full URL, not just the key)
+- From a Slack discussion → `# slack discussion YYYYY` (use the thread link, date, or channel/thread identifier in place of `YYYYY`)
+
+The header is the **first line**, before any `DECLARE` or `WITH`.
+
+## Examples
+
+<good-example>
+```sql
+# https://lightspeedhq.atlassian.net/browse/LSR-37887
+DECLARE LOOKBACK_DAYS INT64 DEFAULT 1095;
+
+WITH latest_payment_types AS (
+  ...
+)
+SELECT ...
+```
+</good-example>
+
+<good-example>
+```sql
+# slack discussion https://lightspeed.slack.com/archives/C0XXXX/p1717430000
+SELECT COUNT(*) FROM `ls-data-platform-prd.retail_binlog_row_unified.payment_type_unified` ...
+```
+</good-example>
+
+<bad-example>
+Bare key instead of the full URL:
+```sql
+# LSR-37887
+SELECT ...
+```
+</bad-example>
+
+<bad-example>
+No attribution header — origin of the query is untraceable:
+```sql
+DECLARE LOOKBACK_DAYS INT64 DEFAULT 1095;
+SELECT ...
+```
+</bad-example>
+
+If the query maps to both a ticket and a discussion, prefer the JIRA URL.

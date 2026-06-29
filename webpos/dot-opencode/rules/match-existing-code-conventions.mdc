@@ -1,0 +1,38 @@
+---
+description: Before writing new code, find existing similar code and match its conventions. Don't invent new patterns when established ones already exist in the codebase.
+alwaysApply: true
+---
+
+# Match Existing Code Conventions
+
+Before writing **any** non-trivial new code, find 2-3 existing similar pieces in the codebase and match their conventions. Whatever the codebase already does is the correct answer by default — even if the new way seems cleaner.
+
+## Procedure
+
+1. **Identify the kind of thing you're adding** — a domain class, a repository, an endpoint, a migration, a test, a JS module, a SQL DDL, a config block, etc.
+2. **Find 2-3 sibling examples** already in the repo before writing a single line:
+   - `Grep` for similar class names, method names, or pattern keywords.
+   - `Glob` for similar file paths (e.g. `src/Domain/<feature>/*Repository.php`, `tests/Domain/<feature>/*Test.php`, `db/schema/*.sql`).
+   - Read the relevant `README.md` (`src/README.md`, `cli/README.md`) and any matching skill (`r-series-data-layer-conventions`, `schema-ddl`, `r-series-repository-tests`, `review-data-layer-pr`).
+3. **Match the established convention.** If the codebase is inconsistent, pick the most recent / most-used variant and flag the inconsistency to the user — don't silently pick a side.
+
+## What to match
+
+- **Naming** — file names, class names, method names, constant casing, test class suffixes (e.g. existing repos are `<Entity>DatabaseRepository` + `<Entity>CachingRepository`; follow that pair, don't invent `<Entity>Repo` or `<Entity>Service`).
+- **Architecture** — Repository / DI / Domain layout. If existing features use a Caching + Database repository pair behind an interface, do the same. If they wire bindings in `DIC.config.php`, do the same. Don't introduce a new layering pattern alongside an established one.
+- **Error handling** — exception types thrown, log call shapes, return-vs-throw conventions, nullable-vs-exception for "not found".
+- **Tests** — base class, fixture builders, assertion idioms, file/method naming. Read 2-3 sibling tests in the same domain folder before writing new ones.
+- **Docblocks / types** — PHPStan-level annotations, parameter ordering, return-type style, nullable/`?T` conventions, `@throws` usage.
+- **Dependencies** — never add a new library if an existing one already covers the use case. Check `composer.json` / `package.json` first; ask the user before adding any new dependency.
+
+## Don't
+
+- Don't invent a new naming or layering pattern when an established one fits.
+- Don't introduce a new library, framework, or abstraction without explicit user approval.
+- Don't deviate because "the new way is cleaner" — propose the change to the user as a separate discussion, don't smuggle it into a feature PR.
+- Don't write code "from generic best practices" without first checking how this codebase actually does it.
+- Don't trust your training data over the live repo — conventions here may differ from what's idiomatic in PHP / JS at large.
+
+## When you find a genuine inconsistency
+
+State the variants you found, pick the most recent / most-used, and tell the user explicitly. Suggesting a follow-up cleanup is fine; silently picking a side is not.

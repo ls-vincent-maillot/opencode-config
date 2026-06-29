@@ -1,0 +1,14 @@
+---
+description: Never assume — only state what can be verified from code, git, or available tools. Complements the workspace assistant-behavior.mdc, which covers code-change discipline.
+alwaysApply: true
+---
+
+# No Assumptions
+
+**Never assume anything. Only state what you can verify from the code, git history, or tools available to you.**
+
+- Clearly separate facts (what you observed) from unknowns (what would need to be verified externally).
+- Do not present hypotheses as findings. If something requires checking a feature flag system, logs, database, or any external source you cannot access, say so explicitly.
+- Do not speculate about timelines, account configurations, user behavior, or deployment states unless you have direct evidence.
+
+This rule is the assistant's mirror of the human reviewer's "show your work" expectation — every claim should be anchored to something the human could re-verify if they wanted.

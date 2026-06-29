@@ -1,0 +1,37 @@
+---
+description: Pre-commit and pre-push branch and scope audit
+alwaysApply: true
+---
+
+# Pre-Commit Audit
+
+**Before any `git commit`, `git push`, `git commit --amend`, or force-push, verify the current state of the working tree and branch.** Skipping this has caused real mistakes in this repo: committing on `develop-retail` instead of the feature branch, almost amending an already-pushed commit, and pushing 9 unintended changes from a stale working tree.
+
+## Mandatory checks before `git commit`
+
+1. **Branch sanity** — confirm `git branch --show-current` returns the intended branch. Shell state is shared with the user's terminals; the branch can change between tool calls.
+2. **Scope** — run `git diff --stat` and verify the modified files match the intended change set. If files you don't recognize appear, stop and investigate.
+
+> **Before pushing a substantive code change for review,** also self-review the diff against the [`review-webpos-pr` Phase 5 cross-checks](../skills/review-webpos-pr/SKILL.md) — especially **public-contract completeness** (`@throws` incl. rethrows, public-symbol visibility, sibling parity). These mechanical nits slip past logic-focused review and aren't all tool-caught (PHPStan's `missingCheckedExceptionInThrows` is `false` here).
+
+## Additional check before `git commit --amend`
+
+3. **Target commit must be local-only**. Verify:
+   - `git log -1 --format='%h %s'` shows the commit you actually want to amend.
+   - `git status` shows the branch is `ahead of origin/...` by the commit count you expect. If the commit you'd amend is already on origin, force-pushing rewrites pushed history — never silently fold new work into it. Use a new commit on top instead.
+
+## Additional check before `git push --force` / `--force-with-lease`
+
+4. **The target branch is not `main` / `develop-retail` / a shared default branch.** Refuse force-push to defaults; warn the user.
+5. **You created the previous commit** (`git log -1 --format='%an %ae'` matches the user). Don't rewrite someone else's history.
+
+## When you spot drift
+
+If the working tree has unexpected modifications you didn't make (typical sign of stale state from a previous session or a parallel terminal):
+
+```bash
+git reset --hard origin/<your-branch>   # back to a known-good state
+# then re-apply your intended change cleanly
+```
+
+`git pull --rebase` reporting "Already up to date" is **not** sufficient to prove the working tree is clean — it only checks the branch HEAD, not uncommitted file drift.

@@ -1,0 +1,72 @@
+---
+description: GitHub CLI access and common gh commands for review and inspection. Safety/permission concerns are owned by no-push-without-approval.mdc.
+alwaysApply: true
+---
+
+# GitHub Integration
+
+## Connection
+
+GitHub CLI (`gh`) is pre-authenticated. Use it for all GitHub operations.
+
+### Common commands
+
+```bash
+# PR overview
+gh pr view <number> --repo merchantos/<repo> --json title,state,isDraft,baseRefName,additions,deletions,changedFiles,body,author,labels
+
+# CI status
+gh pr checks <number> --repo merchantos/<repo>
+
+# List PR files (use this when gh pr diff hits the 300-file limit)
+gh api repos/merchantos/<repo>/pulls/<number>/files --paginate \
+  | jq -r '.[] | "\(.status) \(.additions)+/\(.deletions)- \(.filename)"'
+
+# Full diff
+gh pr diff <number> --repo merchantos/<repo>
+
+# Read file at a specific ref (handy when the PR branch isn't fetched locally)
+gh api "repos/merchantos/<repo>/contents/<path>?ref=<branch_or_sha>" --jq '.content' | base64 -d
+
+# Review history
+gh api repos/merchantos/<repo>/pulls/<number>/reviews
+gh api repos/merchantos/<repo>/pulls/<number>/comments
+gh api repos/merchantos/<repo>/issues/<number>/comments
+
+# Thread resolution state (REST doesn't expose it)
+gh api graphql -f query='
+query {
+  repository(owner: "merchantos", name: "<repo>") {
+    pullRequest(number: <number>) {
+      reviewThreads(first: 50) {
+        nodes { isResolved isOutdated path line }
+      }
+    }
+  }
+}'
+
+# Get full 40-char head SHA (required for posting inline comments)
+gh api repos/merchantos/<repo>/pulls/<number> --jq '.head.sha'
+```
+
+## Posting an inline comment (when explicitly requested)
+
+Use a JSON file via `--input` to avoid shell escaping issues with multi-line bodies and code suggestions:
+
+```bash
+cat > /tmp/comment.json <<'EOF'
+{
+  "body": "...",
+  "commit_id": "<full-40-char-sha>",
+  "path": "<file>",
+  "line": <n>,
+  "side": "RIGHT"
+}
+EOF
+
+gh api --method POST "repos/merchantos/<repo>/pulls/<number>/comments" --input /tmp/comment.json
+```
+
+`commit_id` MUST be the full 40-character SHA — abbreviated SHAs return `422 commit_id is not part of the pull request`.
+
+The line must be inside a changed hunk; a non-hunk line yields `pull_request_review_thread.line` errors.

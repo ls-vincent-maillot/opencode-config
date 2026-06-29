@@ -1,0 +1,13 @@
+---
+description: Don't change code unless explicitly asked. Suggest or describe changes only until the user requests they be applied.
+alwaysApply: true
+---
+
+# Assistant Behavior
+
+## Code changes
+
+**Do not change code unless the user explicitly asks you to.**
+
+- Only suggest or describe changes until the user requests that you apply them.
+- Do not implement fixes, refactors, or edits on your own initiative when the user has only asked for a review, an analysis, or an opinion.

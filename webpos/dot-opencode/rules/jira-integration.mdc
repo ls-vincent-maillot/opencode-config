@@ -1,0 +1,115 @@
+---
+description: JIRA workflow — credentials, ticket fetching, branch and commit naming, data layer workflow, module/feature flag creation, and what NOT to include in a data layer ticket.
+alwaysApply: true
+---
+
+# JIRA Integration
+
+## Connection
+
+Credentials are stored in the project `.env` file:
+
+- **Email:** `JIRA_EMAIL_CURSOR_INTEGRATION`
+- **API Token:** `CURLTOKEN_CURSOR_INTEGRATION`
+- **Base URL:** `https://lightspeedhq.atlassian.net`
+
+### Fetching a ticket
+
+```bash
+source .env && curl -s -u "$JIRA_EMAIL_CURSOR_INTEGRATION:$CURLTOKEN_CURSOR_INTEGRATION" \
+  "https://lightspeedhq.atlassian.net/rest/api/3/issue/LSR-XXXXX" | jq .
+```
+
+Useful field filters: `?fields=summary,status,description,assignee,priority,labels,comment`
+
+## Branch Creation Workflow
+
+When creating a new branch for a JIRA ticket:
+
+1. Checkout the main branch: `git checkout develop-retail`
+2. Pull the latest version: `git pull`
+3. Create the new branch: `git checkout -b LSR-XXXXX-Short-description`
+
+Branch name format: `LSR-{ticket number}-{kebab-case description of what the branch is about}`
+
+## Commit Naming Convention
+
+1. The **first commit** on a branch should reflect the branch purpose, prefixed with the LSR number: `LSR-XXXXX Short description of the branch purpose`
+2. **Subsequent commits** follow: `LSR-XXXXX Why this commit` — a brief explanation of why the commit exists (e.g. `LSR-36554 Add coverage`, `LSR-36554 Fix calculation of the amounts`)
+
+### Commit body length
+
+**Default: no body.** The title carries the intent; the diff carries the rest.
+
+Add a body only when the title can't carry the rationale (non-obvious decision, specific failure mode, security-sensitive change). Keep it to **3–5 lines max**.
+
+**Why:** GitHub "Squash and merge" concatenates every commit message in the PR into the squashed body on `develop-retail`. 10 commits × 20-line bodies = 200-line unreadable wall. Real failure: LSR-37242 → 258-line squashed commit.
+
+### Don't put in commit bodies
+
+- File lists (`git show --stat` covers it)
+- Method signatures the diff already shows
+- "Context" / "Background" / "Considerations" — those belong in the JIRA ticket or PR description
+- Reviewer attribution padding (`(Sean review)`, `(Patrick feedback)`)
+
+## Data Layer Workflow
+
+When a schema change introduces a new column or a new table, the data layer must be updated. Each entity has 3 files, plus optional repository and DI registration.
+
+For implementation gotchas (nullable fields, field-type conventions, FK annotations, append-only patterns, etc.) see `r-series-data-layer-conventions/SKILL.md`. For DDL conventions see `schema-ddl/SKILL.md`. For test patterns see `r-series-repository-tests/SKILL.md`. This rule covers the **process** — which files to touch and what NOT to include.
+
+### New column on an existing table
+
+Update these 3 files:
+
+1. **Model** (`includes/data/model/XXX.class.php`) — add field to `_getFieldsDef()` and `@property` docblock
+2. **IO mapper** (`includes/data/io/sql/XXX.class.php`) — add `camelCase` → `snake_case` mapping
+3. **Database class** (`includes/database/bs_XXX.class.php`) — add `$snake_case` property, doctype, and type hint
+
+### New junction/linking table
+
+Create these 3 new files (follow the `ItemFeeCategory` / `ItemFeeShop` pattern):
+
+1. **Model** (`includes/data/model/XXX.class.php`) — extend `StaticFieldBase`, define keys with `'key'` type and relations with `'object'` type
+2. **IO mapper** (`includes/data/io/sql/XXX.class.php`) — extend `data_io_sql_Generalist`, map fields to columns
+3. **Database class** (`includes/database/bs_XXX.class.php`) — extend `bs_table` via a `stub_` class with properties and type hints
+
+Then wire it up:
+
+4. **Repository** (`src/Domain/`) — create a minimal interface (extends `RepositoryInterface`) and implementation (extends `DatabaseRepository`, only `getModelType()`). Add business logic methods later, in the ticket that needs them.
+5. **DI container** (`includes/config/DIC.config.php`) — register the interface → implementation binding
+6. **Parent model** — add a `'collection'` field to the parent entity's `_getFieldsDef()`
+
+### General pre-commit checklist
+
+Before every commit, review the new code against these principles:
+
+- **DRY (Don't Repeat Yourself):** Extract duplicated logic into shared methods. If the same validation, calculation, or pattern appears in more than one place, consolidate it.
+- **Optimize:** Avoid unnecessary DB fetches, redundant checks, or over-complex conditionals. Lazy-load expensive operations only when needed.
+- **Test coverage:** Ensure tests cover all new code paths, including edge cases introduced by the change. When refactoring (e.g. extracting a method), verify existing tests still pass and add new ones for any previously untested scenarios.
+
+### Data layer pre-commit checklist
+
+Before committing data layer changes:
+
+- **PHPStan docblocks:** Repository interfaces must use `@implements RepositoryInterface<ModelClass>` (matching the existing pattern). This triggers a `generics.noParent` PHPStan error which must be added to `phpstan-baseline.neon` — place the entry alphabetically near the sibling interfaces. See existing entries for `ItemFeeRepositoryInterface` / `ItemFeeCategoryRepositoryInterface` as reference.
+- **DIC sorting:** After editing `includes/config/DIC.config.php`, run `make sort-dic-config` to sort entries alphabetically.
+- **DB Scheme relations:** After adding a new table or new foreign-key columns, remind the user to run **System → More Utilities → Generate DB Scheme** in their local app. This regenerates `includes/justlogic/merchantos/data_scheme/relations__*.inc.php` files. It cannot be run from the CLI — it requires a browser with the local environment running and the schema already deployed.
+
+## Module / Feature Flag Creation
+
+When creating a new module (e.g. `make generate-feature-flag` or manual scaffolding), 6 files are touched:
+
+1. `includes/helpers/Modules.class.php` — add `public const`
+2. `src/Framework/FeatureToggles/Features.php` — add `@method static bool has…()`
+3. `src/Framework/FeatureToggles/ToggleName.php` — add `@method static ToggleName …()` docblock + `public const`
+4. `src/Framework/FeatureToggles/Config/DefaultProvider.php` — add `$features->bind(…)` block
+5. `assets/js/api/admin/features.ts` — add to `Feature` type union
+6. `assets/js/lsCloud/common.types.ts` — add to `ModuleName` type union
+
+**Alphabetical sorting:** Each of these files is (at least partially) sorted alphabetically. **Always insert the new entry at its correct alphabetical position** — near sibling entries sharing the same prefix — rather than right after the insertion marker comment. The plop generator appends after the marker; fix the position manually.
+
+### What NOT to include in a data layer ticket
+
+- **Controller changes** (e.g. adding relations to `$_load_relations`) — these actively query the new table on every API call and will break production if the schema isn't deployed yet. Belongs in the feature ticket, ideally behind a feature flag.
+- **Business logic methods** on repositories — belongs in the ticket that implements the feature logic.

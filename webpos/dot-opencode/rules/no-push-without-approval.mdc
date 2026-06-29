@@ -1,0 +1,38 @@
+---
+description: Never propagate changes externally (push, PR, merge, Jira update) without explicit user instruction
+alwaysApply: true
+---
+
+# No External Propagation Without Approval
+
+Code edits and **local** commits are OK to do proactively when the user asks for a change. **Anything that propagates externally requires explicit user instruction**.
+
+## Operations that require approval
+
+- `git push`, `git push --force`, `git push --force-with-lease`
+- `gh pr create`
+- `gh pr merge`, `gh pr ready`
+- Adding a PR to a merge queue (`enqueuePullRequest` GraphQL mutation)
+- Posting / replying to PR comments (`gh api ... /comments`, `gh api ... /reviews/replies`)
+- Updating Jira tickets via the REST API (`PUT /rest/api/3/issue/...`)
+- Transitioning Jira tickets (`POST /rest/api/3/issue/.../transitions`)
+- Creating Jira tickets (`POST /rest/api/3/issue`)
+- Pushing to any external docs repo (e.g. `r-series-core-docs`)
+
+## How to proceed
+
+When you have local edits ready, **stop and report back** with:
+
+1. What's staged / committed locally and on which branch
+2. Net diff stats
+3. A clear question like "ready to push, or hold for review?"
+
+This pattern caught real bugs in the past: a commit landed on `develop-retail` instead of the feature branch, and a docs PR was pushed with 9 unintended changes from a stale working tree. Both were caught at the "ready to push" question — would have been live history if pushed automatically.
+
+## What's fine without approval
+
+- Writing / editing files in the working tree
+- Running tests
+- `git add`, `git commit` (subject to `pre-commit-audit.mdc`)
+- Pulling, fetching, branching locally
+- Reading any GitHub / Jira state via the API

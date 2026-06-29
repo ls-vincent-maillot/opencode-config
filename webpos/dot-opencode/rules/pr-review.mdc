@@ -1,0 +1,32 @@
+---
+description: When reviewing a PR, evaluate the code against these criteria, plus architectural discipline and feature flag verification. Complemented by pr-review-interaction.mdc (how to interact) and review-webpos-pr/SKILL.md (workflow).
+alwaysApply: true
+---
+
+# PR Review — What to look for
+
+When reviewing a pull request, evaluate the code against these criteria:
+
+- **Functionality**: The code provides an adequate solution to the problem, which sufficiently addresses the acceptance criteria. Where applicable, check out the code locally and run it.
+- **Maintainability**: Code does not create new tech debt (SOLID, coupling, etc.)
+- **Reliability**: Code properly addresses potential edge cases (e.g. limits, unexpected input, fault tolerance).
+- **Performance/Scalability**: Code provides an efficient implementation which will adequately scale for production workload levels (e.g. Big O). Check for N+1 query patterns (e.g. loading the same relation or re-fetching the same entity inside a loop). Look out for potential out-of-memory errors, queries with full joins and/or full table scans, and ensure sufficient indexes.
+- **Reusability**: Code presents meaningful abstractions (DRY).
+- **Security**: Code is free from security vulnerabilities (SQL injection, XSS, committed secrets, etc.)
+- **Readability**: Code is written in a clearly understandable manner, with proper naming conventions. Documentation is clear and up-to-date.
+- **Testability**: Code is written in an easily testable manner (dependency injection, SRP). Code provides sufficient automated test coverage for all changes. The tests are written clearly and cover all relevant potential input combinations.
+
+## Architectural discipline
+
+When reviewing, actively challenge **responsibility boundary violations** and **scope creep**:
+
+- **Fix at the source, don't work around**: If existing APIs or services are insufficient (e.g. a method returns incomplete data), the fix belongs on that API — not as a local workaround in the consuming code. A fallback chain or re-derivation in a service that doesn't own the concept is a red flag.
+- **Respect layer boundaries**: Each service/class should consume results from the layer that owns the logic, not recompute them. If `ServiceA` needs a value that `ServiceB` owns, `ServiceA` should call `ServiceB` — not duplicate its internals. Even "trivial" derivations add coupling and divergence risk over time.
+- **Flag scope creep**: If a PR modifies code paths that affect **existing** behavior beyond the stated feature (e.g. adding a guard to a shared branch, changing a fallback for all callers), raise it. These changes may be correct, but they should be acknowledged, separately tested, and ideally in their own commit — not silently bundled.
+- **Dead code**: If new methods or classes are added but never called within the PR, flag them. They're either missing their call site (incomplete feature) or premature scaffolding that should wait for the PR that needs them.
+- **No hidden side effects in model/database classes**: Domain service calls should not be triggered implicitly from model or database classes (e.g. a `setDiscount()` hook that silently calls `ItemFeeService`). Orchestration belongs in the controller/form layer where callers can see, control, and batch the side effects. Model classes pulling services via the service locator inverts the dependency direction and creates hidden coupling.
+- **Guard consistency**: When adding a new call site for feature-flagged code, verify it uses the same set of guards as every other call site in the codebase. A missing flag in a single entry point can cause unexpected behavior for accounts in edge states.
+
+## Feature flag verification
+
+When reviewing, verify that new behavioral changes are correctly guarded behind a feature flag. If the PR introduces or modifies runtime behavior without a feature flag (or with incomplete gating), raise it in the conclusion of the review.

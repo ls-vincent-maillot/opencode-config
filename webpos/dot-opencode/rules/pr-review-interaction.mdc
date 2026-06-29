@@ -1,0 +1,65 @@
+---
+description: How to behave when the user asks for a PR review — read-only by default, no GitHub mutations without explicit consent. Complements pr-review.mdc (what to look for) and assistant-behavior.mdc (no code changes by default).
+alwaysApply: true
+---
+
+# PR Review — Interaction Protocol
+
+## First action
+
+Before anything else, read and follow `.cursor/skills/review-webpos-pr/SKILL.md` using the Read tool. This is mandatory on every PR review request — do not draft a verdict, fetch PR data, or run any review step until the skill file has been read in the current turn. Do not announce the skill without reading it.
+
+## Default = chat-only
+
+A review request (e.g. "review this PR", "look at #12345", "check this PR") is a request for analysis **in the chat**, never a request to post on GitHub. Default output is a written verdict to the user, not inline GitHub comments.
+
+- Never post inline comments, review summaries, or reactions on a PR unless the user explicitly says "comment", "post", "reply on the PR", or "EXCEPTIONALLY comment".
+- "Address the points" / "fix the issues" → ask the user to confirm scope (local code change vs. GitHub comment) if there is any ambiguity. Lesson: this phrase has been misread before.
+- Switching code or filesystem state during a review violates `assistant-behavior.mdc`.
+
+## Verify existing feedback before drafting
+
+Before suggesting any new feedback, **read what's already on the PR**:
+
+```bash
+gh api "repos/<owner>/<repo>/pulls/<num>/reviews"
+gh api "repos/<owner>/<repo>/pulls/<num>/comments"
+gh api "repos/<owner>/<repo>/issues/<num>/comments"
+```
+
+If another reviewer has already raised the same concern, do not duplicate it — either skip the point or acknowledge the existing thread explicitly. Lesson learned the hard way: redundant comments waste reviewer time and look like you didn't read the PR.
+
+## Ignore existing approvals — review the code, not the verdict
+
+**When reviewing a PR, ignore the existing approvals entirely.** Focus only on (1) the code itself and (2) the existing review *comments* (to avoid duplicating concerns and to see what's already been raised). The number of other reviewers, their seniority, and their approval state do **not** change my analysis. A PR with 5 approvals gets the same review as a PR with 0 approvals.
+
+- Don't consult or weigh approval state when forming or softening a verdict — an approved PR can still have a must-fix.
+- Don't write phrases like "three reviewers already approved, my job is to find what they missed" — the count is irrelevant.
+- Don't lead a verdict with social proof ("Approved by X, Y, Z" as a reason to approve).
+- Approval count belongs only in the metadata header for context — never as a factor in the reasoning.
+- Existing review **comments** are consulted only to avoid duplication (per "Verify existing feedback" above) — not to calibrate confidence in my own findings.
+- A real concern is a real concern regardless of how many people signed off without raising it.
+
+The author still benefits from a consistent, evidence-based review even when the PR is already approved.
+
+## Codebase convention vs. spec item
+
+When an author argues "this is not a pattern in the codebase" against a spec-derived suggestion, that argument is **legitimate** and may outweigh the spec item. Before pushing back, validate by `Grep`-ing for similar patterns:
+
+- If there is precedent → the author is wrong; cite the precedent.
+- If there is no precedent → the author is right; the spec item is descoped or deferred.
+
+Don't defend a position purely because the spec says so — codebase conventions exist for reasons that may not be in the spec.
+
+## Severity vocabulary
+
+Use these labels consistently so the user can scan quickly:
+
+- **Must-fix** — breaks CI, production, or security
+- **Should-fix** — design concern, deferrable with justification
+- **Should-verify** — looks suspicious, needs author confirmation
+- **Nit** — cosmetic, non-blocking
+
+## Approving / requesting changes on GitHub
+
+Requires explicit user permission. Per `no-push-without-approval.mdc`, never submit a review state (APPROVE / REQUEST_CHANGES) on the user's behalf without "approve the PR" or equivalent direct instruction.

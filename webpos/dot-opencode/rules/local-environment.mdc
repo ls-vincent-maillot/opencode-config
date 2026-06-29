@@ -1,0 +1,106 @@
+---
+description: Local development environment URL, login, UI navigation, and screenshot rules for evidence capture.
+alwaysApply: true
+---
+
+# Local Environment
+
+**URL:** `https://rad.localdev/`
+**Login:** username `test` / password `testtest`
+
+## Docker on Apple Silicon
+
+The ECR `lsr-*-toolbox:*-latest` image manifests have no `linux/arm64/v8` variant. On Apple Silicon, export `DOCKER_DEFAULT_PLATFORM=linux/amd64` (in `~/.zshrc` or per-invocation) so Docker pulls the amd64 layer and runs it under Rosetta. Symptom without it: `no matching manifest for linux/arm64/v8 in the manifest list entries`. Affects every `make` target that pulls an image (`make up`, `make provision-*`, `make -C cli/tester php-test …`, etc.).
+
+## UI Navigation
+
+### Login
+
+- Go to `https://rad.localdev/`
+- Fill username and password, click Sign In
+- After login, lands on the **System** tab
+- Do NOT screenshot the login page — it has no value as evidence
+
+### Settings > Item Fees
+
+1. Click **Settings** in the top navigation bar
+2. Under **PRICING**, click the **Item Fees** tile
+3. Item Fees listing: `https://rad.localdev/settings/item-fees/`
+4. Click **Add item fee** to create a new fee: `https://rad.localdev/settings/item-fees/new`
+5. Click an existing fee name to open its detail page: `https://rad.localdev/settings/item-fees/{id}`
+
+### System > Modules (feature flag management)
+
+1. Click **System** in the top navigation bar
+2. Click **Modules** under "Account Management"
+3. Modules listing: `https://rad.localdev/?name=system.listings.modules&form_name=listing`
+
+#### Searching for a module
+
+- Use the **Name** text field at the top, then click **Search**
+- If "No system modules were found." appears, the module does not exist yet
+
+#### Creating a new module
+
+1. Click **New Module**
+2. Fill the **Name** field with the module name (e.g. `item_fees.percent`)
+3. Leave **State** as `development`
+4. Ignore other fields
+5. Click **Save Changes**
+
+#### Enabling a module for an account
+
+1. Open the module detail page (search for it first, then click the module name)
+2. In the **Accounts** section at the bottom:
+   - Fill **Account ID** (e.g. `1`)
+   - Check **"Doesn't have module"**
+   - Click **Search** — this lists accounts that do NOT have the module
+3. Click **Add Module** — confirms with a dialog "Are you sure you want to bulk add this module to selected accounts?"
+4. Accept the dialog
+5. The MODULE column will now show **"Yes"** for the account
+
+#### Disabling a module for an account
+
+1. Open the module detail page
+2. In the **Accounts** section:
+   - Fill **Account ID**
+   - Leave "Doesn't have module" **unchecked**
+   - Click **Search** — this lists accounts that HAVE the module
+3. Click **Remove Module** and confirm
+
+## API Usage
+
+### Item Fee API
+
+**Base URL:** `/API/V3/Account/{accountID}/ItemFee.json`
+
+**Authentication:** Session cookie (already authenticated when using `evaluate_script` from the browser) or basic auth with `test`/`testtest`.
+
+**Input format:** JSON (when using the `.json` endpoint). Flat object — no wrapper element.
+
+**Examples:**
+
+Create:
+```json
+POST /API/V3/Account/1/ItemFee.json
+{"name": "10% Fee", "calculationMethod": "percentage", "feeValue": "0.10", "taxable": "false"}
+```
+
+Update:
+```json
+PUT /API/V3/Account/1/ItemFee/{itemFeeID}.json
+{"feeValue": "0.05"}
+```
+
+Read all:
+```
+GET /API/V3/Account/1/ItemFee.json
+```
+
+## Taking Screenshots for PR Evidence
+
+- Use the Chrome DevTools MCP tools: `navigate_page`, `take_snapshot`, `fill`, `click`, `wait_for`, `take_screenshot`, `handle_dialog`
+- Always call `take_snapshot` before interacting with elements (to get UIDs)
+- For backend-only changes where the UI doesn't yet expose the feature, use **API calls** via `evaluate_script` and display results in the browser, then screenshot
+- For dialogs (confirm/alert), use `handle_dialog` with `{"action": "accept"}` or `{"action": "dismiss"}`
+- **Always save screenshots to `~/Pictures/cursorScreenshots/`** — never to the project directory or any other location

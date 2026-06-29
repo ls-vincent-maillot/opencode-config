@@ -1,0 +1,32 @@
+---
+description: PR review — prioritize substance over comment-noise; verify the author's "known limitation" framing
+alwaysApply: true
+---
+
+# PR Review — Substance Over Noise
+
+Lessons from PR #27106 (LSR-37250), where a thorough-looking review missed the real bug and added cosmetic noise.
+
+## 1. Don't trust the author's "known limitation / out-of-scope" framing — verify it
+
+A limitation documented in the PR description can still be a **bug**. Before accepting "X is an out-of-scope follow-up", read the code X depends on and confirm the severity yourself.
+
+- **Real miss**: the PR framed a registration-number-only `update()` as "reg-number is not a Storecove-bound field — follow-up". But `PeppolIdentifierDerivationService::valueForScheme()` derives the `NL:KVK` / `FR:SIRET` **primary** identifier *from* the registration number. So for NL/FR it IS Storecove-bound, and the "limitation" is a correctness bug. The one file that would have flipped the verdict was the one not read.
+- Rule: when a limitation touches a derived/computed value, open the deriving function. Don't paraphrase the PR's self-description as a finding.
+
+## 2. Over-documentation is a finding, not a strength
+
+Verbose comments are a maintenance liability (they drift from the code). Apply the `Code Comments — Conciseness` lens — don't praise "thorough docs".
+
+Flag, don't applaud:
+- Multi-line comments on trivial / one-line helpers ("6 lines for a 1-line method is abusive").
+- Comments that restate the code (the *what*, not the *why*).
+- JIRA ticket IDs embedded in code — git blame is enough — unless they tag a real planned TODO.
+
+## 3. Don't add comment-noise, especially under reviewer fatigue
+
+When a human reviewer signals "I should be reading code, not comments", do NOT post cosmetic nits — and never post a comment *about a comment* (e.g. docblock wording). Raise substantive functional / correctness / security issues; keep cosmetics in the chat verdict, not on the PR.
+
+## 4. Cross-check sibling consistency after a fix
+
+When one symbol is fixed for a class of issue, check its siblings for the same defect. (`InvalidMerchantVatException` was fixed from code `0` → `422`; `InvalidRegistrationStateException` still uses `0` — same unanswered question.)
