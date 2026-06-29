@@ -1,35 +1,72 @@
 # opencode-config
 
-Personal backup of my OpenCode configuration. The live files stay where they are
-(`~/.config/opencode/` and `/Volumes/dev/webPOS/.opencode/`); this repo holds copies
-synced by `sync-opencode-config.sh`. Nothing in the live setup is moved or symlinked.
+Personal backup of my [OpenCode](https://opencode.ai) configuration, migrated from
+Cursor. The live config files stay where OpenCode expects them
+(`~/.config/opencode/` and `/Volumes/dev/webPOS/.opencode/`); this repo holds **copies**
+synced by `sync-opencode-config.sh`. Nothing in the live setup is moved or symlinked,
+so the working structure is never altered.
 
-## Layout
+## Why this repo exists
 
+The OpenCode project config lives under `.opencode/` inside the webPOS working tree,
+which is **git-ignored locally** (not versioned by the webPOS repo). It is therefore
+local-only: a fresh clone or a `git clean -dfx` would wipe it. This repo is the durable,
+remote-backed source of truth for that config.
+
+## What's tracked
+
+| Repo path | Live location | Contents |
+| --- | --- | --- |
+| `global/opencode.json` | `~/.config/opencode/opencode.json` | providers, permissions, plugins, MCP servers |
+| `global/AGENTS.md` | `~/.config/opencode/AGENTS.md` | global rules (apply to every project) |
+| `webpos/opencode.json` | `/Volumes/dev/webPOS/opencode.json` | `instructions` wiring (rules + memories) |
+| `webpos/dot-opencode/skills/` | `.../.opencode/skills/` | 11 R-Series skills |
+| `webpos/dot-opencode/rules/` | `.../.opencode/rules/` | 16 project rules (`.mdc`) |
+| `webpos/dot-opencode/memories.md` | `.../.opencode/memories.md` | personal project memories |
+
+What is **not** tracked here: the enterprise-managed skills under
+`~/.config/opencode/skill/` (provisioned by the company install), `node_modules`,
+plugins, and the Cursor chat archive (that lives under `~/Documents/AgentFiles/`).
+
+## Prerequisites
+
+- `bash`, `git`, `rsync` (all default on macOS)
+- An SSH remote already configured (`origin`)
+
+## Usage
+
+### Back up live config → repo
+
+```bash
+sync-opencode-config              # alias: copies live files in, makes a local commit
+git -C ~/opencode-config push     # push when ready (the script never pushes)
 ```
-global/
-  opencode.json     # ~/.config/opencode/opencode.json (providers, permissions, plugins, MCP)
-  AGENTS.md         # ~/.config/opencode/AGENTS.md (global rules)
-webpos/
-  opencode.json     # /Volumes/dev/webPOS/opencode.json (instructions wiring)
-  dot-opencode/
-    skills/         # /Volumes/dev/webPOS/.opencode/skills/ (R-Series skills)
-    rules/          # /Volumes/dev/webPOS/.opencode/rules/  (project rules)
-    memories.md     # /Volumes/dev/webPOS/.opencode/memories.md
-```
 
-## Sync (backup live → repo)
+The alias lives in `~/.zshrc`. The script only commits locally — pushing is always a
+deliberate, separate step.
 
-```
-sync-opencode-config        # alias; runs the script and makes a local commit
-git -C ~/opencode-config push   # push when ready (script never pushes)
-```
+### Restore repo → live config
 
-## Restore (repo → live, e.g. new machine or after a re-clone)
+On a new machine, or after a re-clone / accidental wipe of `.opencode/`:
 
-```
+```bash
+git clone git@github.com:ls-vincent-maillot/opencode-config.git ~/opencode-config
 ~/opencode-config/sync-opencode-config.sh --restore
 ```
 
-This overwrites the live config files from the repo and recreates the `.opencode/skill`
-compat symlink.
+`--restore` overwrites the live config files from the repo and recreates the
+`.opencode/skill` backwards-compat symlink.
+
+### Other flags
+
+```bash
+sync-opencode-config.sh --no-commit   # backup only, skip the commit
+```
+
+## Documentation
+
+- [`docs/MIGRATION.md`](docs/MIGRATION.md) — full record of the Cursor → OpenCode
+  migration: what moved where, what wasn't portable, and the decisions taken.
+- [`docs/OPENCODE-CONFIG-REFERENCE.md`](docs/OPENCODE-CONFIG-REFERENCE.md) — how
+  OpenCode discovers and loads each piece of config (precedence, skills, instructions,
+  MCP).
