@@ -1,5 +1,5 @@
 ---
-description: Find and match existing PR description conventions before writing; don't invent new templates
+description: Find and match existing PR description conventions before writing; don't invent new templates; keep the extended description one line or none
 alwaysApply: true
 ---
 
@@ -24,9 +24,17 @@ If a `docs/PULL_REQUEST_TEMPLATE.md` exists, prefer it as the canonical source. 
 
 ## Length / verbosity
 
-Match the brevity of the reference PRs, not the maximum the template allows. Recent merged PRs in this codebase are short — a Description is 2–4 sentences, Evidence is a single test reference or one screenshot, Usage is one line. If the reference PRs don't carry a "Reminder", "Background", or "Decision log" section, neither should the new PR.
+Match the brevity of the reference PRs, not the maximum the template allows. Recent merged PRs in this codebase are short — a Description is **one short sentence (or omitted)**, Evidence is a single test reference or one screenshot, Usage is one line. If the reference PRs don't carry a "Reminder", "Background", or "Decision log" section, neither should the new PR.
 
 The reference PR's length is itself a convention to match. A PR description that is 5× longer than the references is just as out-of-template as one with the wrong headings — reviewers notice and read past it.
+
+## Extended description: one line or none
+
+The free-text **extended description** (the explanatory prose in the PR body) must be **one short sentence at most, or omitted entirely**. The title + JIRA link carry the intent; the diff carries the rest. Default to *no* prose rather than filler prose. This governs only the explanatory prose — the mandatory template sections (Evidence, Usage, Checklist) still apply.
+
+- ✅ `Mark France out of scope across the e-invoicing docs.`
+- ✅ *(no extended description — title + ticket link suffice)*
+- ❌ A multi-paragraph rationale, background, or decision-log in the PR body.
 
 ## Don't
 

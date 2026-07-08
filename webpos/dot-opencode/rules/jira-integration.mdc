@@ -1,5 +1,5 @@
 ---
-description: JIRA workflow — credentials, ticket fetching, branch and commit naming, data layer workflow, module/feature flag creation, and what NOT to include in a data layer ticket.
+description: JIRA workflow — credentials, ticket fetching, ticket description structure, branch and commit naming, data layer workflow, module/feature flag creation, and what NOT to include in a data layer ticket.
 alwaysApply: true
 ---
 
@@ -21,6 +21,17 @@ source .env && curl -s -u "$JIRA_EMAIL_CURSOR_INTEGRATION:$CURLTOKEN_CURSOR_INTE
 ```
 
 Useful field filters: `?fields=summary,status,description,assignee,priority,labels,comment`
+
+## Ticket Description Structure (Task only)
+
+For every **new Jira ticket of type `Task`** (not `Bug`), the description must follow this exact heading order:
+
+1. `Context`
+2. `Scope`
+3. `Acceptance criteria`
+4. `Docs` (or `Refs`)
+
+These four are the required, ordered backbone. Add optional sections (e.g. `Out of Scope`, `Technical Notes`, `Dependencies`) only when they add value — don't write freeform, unstructured descriptions.
 
 ## Branch Creation Workflow
 
