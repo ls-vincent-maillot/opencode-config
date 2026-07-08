@@ -38,6 +38,7 @@ backup() {
 	# Global config
 	need "$GLOBAL_DIR/opencode.json" && cp "$GLOBAL_DIR/opencode.json" "$REPO_DIR/global/opencode.json"
 	need "$GLOBAL_DIR/AGENTS.md" && cp "$GLOBAL_DIR/AGENTS.md" "$REPO_DIR/global/AGENTS.md"
+	need "$GLOBAL_DIR/opencode-ghostty-notifier.json" && cp "$GLOBAL_DIR/opencode-ghostty-notifier.json" "$REPO_DIR/global/opencode-ghostty-notifier.json"
 
 	# webPOS project: root config + the .opencode payload
 	need "$WEBPOS_DIR/opencode.json" && cp "$WEBPOS_DIR/opencode.json" "$REPO_DIR/webpos/opencode.json"
@@ -58,6 +59,7 @@ restore() {
 
 	need "$REPO_DIR/global/opencode.json" && cp "$REPO_DIR/global/opencode.json" "$GLOBAL_DIR/opencode.json"
 	need "$REPO_DIR/global/AGENTS.md" && cp "$REPO_DIR/global/AGENTS.md" "$GLOBAL_DIR/AGENTS.md"
+	need "$REPO_DIR/global/opencode-ghostty-notifier.json" && cp "$REPO_DIR/global/opencode-ghostty-notifier.json" "$GLOBAL_DIR/opencode-ghostty-notifier.json"
 	need "$REPO_DIR/webpos/opencode.json" && cp "$REPO_DIR/webpos/opencode.json" "$WEBPOS_DIR/opencode.json"
 	if need "$REPO_DIR/webpos/dot-opencode/skills"; then
 		rsync -a --delete "$REPO_DIR/webpos/dot-opencode/skills/" "$WEBPOS_DIR/.opencode/skills/"

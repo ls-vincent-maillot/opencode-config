@@ -19,6 +19,7 @@ remote-backed source of truth for that config.
 | --- | --- | --- |
 | `global/opencode.json` | `~/.config/opencode/opencode.json` | providers, permissions, plugins, MCP servers |
 | `global/AGENTS.md` | `~/.config/opencode/AGENTS.md` | global rules (apply to every project) |
+| `global/opencode-ghostty-notifier.json` | `~/.config/opencode/opencode-ghostty-notifier.json` | Ghostty notifier plugin (sound off, notifications on) |
 | `webpos/opencode.json` | `/Volumes/dev/webPOS/opencode.json` | `instructions` wiring (rules + memories) |
 | `webpos/dot-opencode/skills/` | `.../.opencode/skills/` | 11 R-Series skills |
 | `webpos/dot-opencode/rules/` | `.../.opencode/rules/` | 16 project rules (`.mdc`) |
