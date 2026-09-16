@@ -29,6 +29,14 @@ class bs_cust_e_invoicing extends stub_cust_e_invoicing
 }
 ```
 
+## String columns round-trip HTML-entity-encoded
+
+`bs_table`/`data_Base` **HTML-entity-encodes string columns on write**, so a value read back from the DB is entity-encoded (`"`→`&quot;`, `&`→`&amp;`, `<`→`&lt;`). Anything that exposes a persisted string to the FE/API must decode it with `cust_html_entity_decode()` first, or it renders mangled (a persisted JSON blob shows as `[{&quot;source&quot;:...}]`).
+
+- Precedent: `EInvoicingStatusTransformer::rejectionReason()` and `EInvoicingShopOptionTransformer::nullableString()` both decode for exactly this reason (documented in their docblocks).
+- Pairs with the `$nullable_fields` gotcha above: these columns read back `''` (never `null`) for NULL values, so treat `''` as absent rather than guarding on `!== null`. An **in-memory** model read returns the RAW string; only a **DB** read-back is entity-encoded — so the same value can render differently depending on the path.
+- Real defect: LSR-38860 exposed `e_invoice.error_message` to the FE on two read paths without decoding.
+
 Reference precedent: `bs_inventory_log` for JSON columns, `bs_e_invoice` / `bs_e_invoice_log` for the e-invoicing tables, `bs_cust_customer` for the system DB.
 
 ## Field-type conventions

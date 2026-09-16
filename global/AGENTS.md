@@ -2,6 +2,20 @@
 
 User-global guidelines that apply across all projects.
 
+## Resuming After Compaction
+
+After resuming from a compacted summary, reload every specialized skill named for the active task before performing an external mutation. A summary that says the skill was previously loaded is not a substitute for its current instructions; if the skill is not advertised, read the recorded skill path directly.
+
+## Shell and Tool Availability
+
+- Before reporting an executable as unavailable, run `command -v` in the exact shell that will execute the command. If a non-login shell differs from the user's login shell, check the known package-manager path and `zsh -l -c 'command -v <tool>'` before concluding the tool is missing.
+- For GitHub operations, preflight `gh` and `jq`, then verify `gh auth status`, before invoking a workflow script. On macOS, Homebrew's standard CLI path is `/opt/homebrew/bin`.
+
+## Sensitive File Inspection
+
+- Before inspecting any configuration, environment, or runtime-metadata source that may contain credentials, identify the exact setting needed and emit only a narrowly bounded, redacted excerpt or key names.
+- Never print a complete sensitive file or unredacted assignment values. Redact by position, removing everything after the first `=`, rather than relying on variable-name suffixes; never read `.env` values into tool output.
+
 ## Agent-Produced Artifacts — Storage Convention
 
 Any document, report, audit, plan, summary, diagram (`.mmd`/`.png`/`.svg`), ad-hoc SQL, scratch script, or throw-away markdown generated that is **not** part of the application's source code or its committed in-repo documentation.

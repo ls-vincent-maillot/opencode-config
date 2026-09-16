@@ -14,16 +14,28 @@ alwaysApply: true
 
 > **Before pushing a substantive code change for review,** also self-review the diff against the [`review-webpos-pr` Phase 5 cross-checks](../skills/review-webpos-pr/SKILL.md) — especially **public-contract completeness** (`@throws` incl. rethrows, public-symbol visibility, sibling parity). These mechanical nits slip past logic-focused review and aren't all tool-caught (PHPStan's `missingCheckedExceptionInThrows` is `false` here).
 
+## Additional check before pushing a follow-up commit to an open PR
+
+3. **Re-test against the *current* base, not the one you branched from.** A merge queue builds your branch merged onto the latest `develop-retail`; a green local run against a stale base proves nothing about that.
+
+   ```bash
+   git fetch origin develop-retail
+   git merge origin/develop-retail   # merge, never rebase — the PR is already reviewed
+   make -C cli/tester php-test SUITE=<suite> TEST_FILE=<affected test file>
+   ```
+
+   This bit LSR-38863: its tests passed locally and in the first CI run, then failed in the merge queue because a sibling PR had meanwhile tightened `hasEInvoicing()` to require a country allow-list, and the tests set only the module. A *clean* auto-merge made it harder to spot — tests whose bodies both branches had edited inherited the new convention and passed, while newly appended ones kept the old convention and failed. Half-green is the signature of this class of drift.
+
 ## Additional check before `git commit --amend`
 
-3. **Target commit must be local-only**. Verify:
+4. **Target commit must be local-only**. Verify:
    - `git log -1 --format='%h %s'` shows the commit you actually want to amend.
    - `git status` shows the branch is `ahead of origin/...` by the commit count you expect. If the commit you'd amend is already on origin, force-pushing rewrites pushed history — never silently fold new work into it. Use a new commit on top instead.
 
 ## Additional check before `git push --force` / `--force-with-lease`
 
-4. **The target branch is not `main` / `develop-retail` / a shared default branch.** Refuse force-push to defaults; warn the user.
-5. **You created the previous commit** (`git log -1 --format='%an %ae'` matches the user). Don't rewrite someone else's history.
+5. **The target branch is not `main` / `develop-retail` / a shared default branch.** Refuse force-push to defaults; warn the user.
+6. **You created the previous commit** (`git log -1 --format='%an %ae'` matches the user). Don't rewrite someone else's history.
 
 ## When you spot drift
 

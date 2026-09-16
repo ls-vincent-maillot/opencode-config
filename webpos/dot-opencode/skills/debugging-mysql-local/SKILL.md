@@ -22,7 +22,7 @@ Only these statements are allowed:
 
 | Field | Value |
 |---|---|
-| Container | `webpos-retail-retail-database-1` (verify with `docker ps --format '{{.Names}}' | grep database` if your compose project prefix differs) |
+| Container | `webpos-retail-database-1` (verify with `docker ps --format '{{.Names}}' | grep database` if your compose project prefix differs) |
 | User / pass | `root` / `root` |
 | Per-account DB | `cust<RAD_ID>` (e.g. `cust105`, `cust44148`) |
 | System (shared) DB | `customer` |
@@ -31,7 +31,7 @@ Only these statements are allowed:
 ## Usage
 
 ```bash
-docker exec webpos-retail-retail-database-1 sh -c \
+docker exec webpos-retail-database-1 sh -c \
   "mysql -u root -proot cust<RAD_ID> -e \"<SQL>\""
 ```
 
@@ -39,23 +39,23 @@ docker exec webpos-retail-retail-database-1 sh -c \
 
 ```bash
 # List tables in an account DB
-docker exec webpos-retail-retail-database-1 sh -c \
+docker exec webpos-retail-database-1 sh -c \
   "mysql -u root -proot cust105 -e 'SHOW TABLES;'"
 
 # Describe a table
-docker exec webpos-retail-retail-database-1 sh -c \
+docker exec webpos-retail-database-1 sh -c \
   "mysql -u root -proot cust105 -e 'DESCRIBE transaction_payment;'"
 
 # Filtered SELECT
-docker exec webpos-retail-retail-database-1 sh -c \
+docker exec webpos-retail-database-1 sh -c \
   "mysql -u root -proot cust105 -e \"SELECT transaction_payment_id, archived, payment_type_id FROM transaction_payment WHERE transaction_id = 12345 LIMIT 50;\""
 
 # Cross to the system DB
-docker exec webpos-retail-retail-database-1 sh -c \
+docker exec webpos-retail-database-1 sh -c \
   "mysql -u root -proot customer -e 'SELECT cust_customer_id, name, status FROM cust_customer WHERE cust_customer_id = 105;'"
 
 # EXPLAIN a query to check index usage
-docker exec webpos-retail-retail-database-1 sh -c \
+docker exec webpos-retail-database-1 sh -c \
   "mysql -u root -proot cust105 -e 'EXPLAIN SELECT * FROM transaction WHERE customer_id = 1 ORDER BY time_stamp DESC LIMIT 10;'"
 ```
 

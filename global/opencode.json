@@ -1,63 +1,135 @@
 {
-	"$schema": "https://opencode.ai/config.json",
-	"mcp": {
-		"figma": {
-			"type": "remote",
-			"url": "https://mcp.figma.com/mcp",
-			"enabled": true
-		},
-		"datadog": {
-			"type": "local",
-			"command": ["/Users/vincent.maillot/.local/bin/datadog_mcp_cli"],
-			"enabled": true
-		}
-	},
-	"enabled_providers": [
-		"github-copilot",
-		"anthropic",
-		"google",
-		"openai",
-		"lmstudio"
-	],
-	"permission": {
-		"*": "allow",
-		"read": {
-			"*": "allow",
-			"*.env": "deny",
-			"*.env.*": "deny",
-			"*.env.example": "allow"
-		},
-		"bash": {
-			"*": "allow",
-			"git push*": "ask",
-			"git push --force*": "deny",
-			"rm -rf*": "ask",
-			"git reset --hard*": "ask"
-		},
-		"edit": "allow",
-		"glob": "allow",
-		"grep": "allow",
-		"list": "allow",
-		"lsp": "allow",
-		"skill": "allow",
-		"task": "allow",
-		"todoread": "allow",
-		"todowrite": "allow",
-		"webfetch": "allow",
-		"websearch": "allow",
-		"question": "allow",
-		"external_directory": "allow",
-		"figma_*": "allow",
-		"datadog_*": "allow"
-	},
-	"plugin": [
-		"@lightspeedhq/opencode-context-progress",
-		"@lightspeedhq/opencode-copilot-usage",
-		"@lightspeedhq/opencode-ghostty-notifier",
-		"@lightspeedhq/opencode-provider-logo",
-		"@lightspeedhq/opencode-recap",
-		"@lightspeedhq/opencode-subprojects",
-		"@lightspeedhq/opencode-telemetry"
-	],
-	"share": "disabled"
+  "$schema": "https://opencode.ai/config.json",
+  "model": "github-copilot/gpt-5.6-luna",
+  "mcp": {
+    "figma": {
+      "type": "remote",
+      "url": "https://mcp.figma.com/mcp",
+      "enabled": true
+    },
+    "datadog": {
+      "type": "remote",
+      "url": "https://mcp.us5.datadoghq.com/api/unstable/mcp-server/mcp",
+      "headers": {
+        "Authorization": "Bearer {env:MY_DATADOG_ACCESS_TOKEN}"
+      },
+      "timeout": 120000,
+      "enabled": true
+    }
+  },
+  "enabled_providers": [
+    "github-copilot",
+    "anthropic",
+    "google",
+    "openai",
+    "lmstudio",
+    "ollama"
+  ],
+  "instructions": [
+    "/Users/vincent.maillot/.config/opencode/memories.md",
+    ".opencode/memories.md",
+    "/Users/vincent.maillot/.config/opencode/mechanical-commands.md"
+  ],
+  "permission": {
+    "*": "allow",
+    "bash": {
+      "*": "allow",
+      "curl *--request POST *api.us5.datadoghq.com/api/v1/dashboard*": "allow",
+      "curl *--request PUT *api.us5.datadoghq.com/api/v1/dashboard/*": "allow",
+      "curl * -X POST *api.us5.datadoghq.com/api/v1/dashboard*": "allow",
+      "curl * -X PUT *api.us5.datadoghq.com/api/v1/dashboard/*": "allow",
+      "rm *": "ask",
+      "git push*": "ask"
+    },
+    "read": {
+      "*": "allow",
+      "**/.env": "deny",
+      "**/.env.*": "deny"
+    }
+  },
+  "plugin": [
+    "@lightspeedhq/opencode-context-progress",
+    "@lightspeedhq/opencode-copilot-usage",
+    "@lightspeedhq/opencode-ghostty-notifier",
+    "@lightspeedhq/opencode-provider-logo",
+    "@lightspeedhq/opencode-recap",
+    "@lightspeedhq/opencode-subprojects",
+    "@lightspeedhq/opencode-telemetry"
+  ],
+  "share": "disabled",
+  "disabled_providers": [],
+  "agent": {
+    "build": {
+      "variant": "max"
+    },
+    "coderLama": {
+      "description": "Implementation agent: writes clean, performant, strictly typed, modular code.",
+      "mode": "primary",
+      "model": "ollama/qwen38-27b-think:latest",
+      "prompt": "You are an expert senior dev. Your role is to write clean, performant, strictly typed, and modular code. When the 'criticLama' agent provides feedback or identifies issues, address and fix every point immediately without unnecessary debate.",
+      "temperature": 0.2
+    },
+    "criticLama": {
+      "description": "Ruthless code-review subagent for coderLama output; replies CODE_OK only when the code is production-ready.",
+      "mode": "subagent",
+      "model": "ollama/qwen38-27b-think:latest",
+      "prompt": "You are a ruthless, highly rigorous code reviewer. Your sole role is to analyze the code produced by the 'coderLama' agent. Actively search for bugs, security vulnerabilities, unhandled edge cases, memory leaks, and violations of software design best practices. If you find issues, list them precisely. If the code is flawless and ready for production, reply strictly with 'CODE_OK'.",
+      "temperature": 0.1,
+      "permission": {
+        "edit": "deny"
+      }
+    }
+  },
+  "provider": {
+    "github-copilot": {
+      "models": {
+        "gpt-5.6-luna": {
+          "limit": {
+            "context": 1050000,
+            "input": 922000,
+            "output": 128000
+          }
+        }
+      }
+    },
+    "ollama": {
+      "name": "Ollama local",
+      "npm": "@ai-sdk/openai-compatible",
+      "options": {
+        "baseURL": "http://alibaba:11434/v1"
+      },
+      "models": {
+        "qwen38-27b-256k:latest": {
+          "name": "Qwen 3.8 27b 256k",
+          "options": {
+            "num_ctx": 131072
+          },
+          "limit": {
+            "context": 131072,
+            "output": 8192
+          }
+        },
+        "qwen38-27b-think:latest": {
+          "name": "Qwen 3.8 27b think",
+          "options": {
+            "num_ctx": 131072
+          },
+          "limit": {
+            "context": 131072,
+            "output": 8192
+          }
+        },
+        "qwen3-coder-next-128k:latest": {
+          "name": "Qwen 3 Coder Next 128k",
+          "options": {
+            "num_ctx": 131072
+          },
+          "limit": {
+            "context": 131072,
+            "output": 8192
+          }
+        }
+      }
+    }
+  }
 }

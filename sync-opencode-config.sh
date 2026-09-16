@@ -33,12 +33,14 @@ need() { [ -e "$1" ] || { echo "⚠ missing: $1 (skipped)" >&2; return 1; }; }
 
 backup() {
 	echo "→ Backing up live OpenCode config into $REPO_DIR"
-	mkdir -p "$REPO_DIR/global" "$REPO_DIR/webpos/dot-opencode"
+	mkdir -p "$REPO_DIR/global/agents" "$REPO_DIR/webpos/dot-opencode"
 
 	# Global config
 	need "$GLOBAL_DIR/opencode.json" && cp "$GLOBAL_DIR/opencode.json" "$REPO_DIR/global/opencode.json"
 	need "$GLOBAL_DIR/AGENTS.md" && cp "$GLOBAL_DIR/AGENTS.md" "$REPO_DIR/global/AGENTS.md"
 	need "$GLOBAL_DIR/opencode-ghostty-notifier.json" && cp "$GLOBAL_DIR/opencode-ghostty-notifier.json" "$REPO_DIR/global/opencode-ghostty-notifier.json"
+	need "$GLOBAL_DIR/mechanical-commands.md" && cp "$GLOBAL_DIR/mechanical-commands.md" "$REPO_DIR/global/mechanical-commands.md"
+	need "$GLOBAL_DIR/agents/luna-runner.md" && cp "$GLOBAL_DIR/agents/luna-runner.md" "$REPO_DIR/global/agents/luna-runner.md"
 
 	# webPOS project: root config + the .opencode payload
 	need "$WEBPOS_DIR/opencode.json" && cp "$WEBPOS_DIR/opencode.json" "$REPO_DIR/webpos/opencode.json"
@@ -60,6 +62,11 @@ restore() {
 	need "$REPO_DIR/global/opencode.json" && cp "$REPO_DIR/global/opencode.json" "$GLOBAL_DIR/opencode.json"
 	need "$REPO_DIR/global/AGENTS.md" && cp "$REPO_DIR/global/AGENTS.md" "$GLOBAL_DIR/AGENTS.md"
 	need "$REPO_DIR/global/opencode-ghostty-notifier.json" && cp "$REPO_DIR/global/opencode-ghostty-notifier.json" "$GLOBAL_DIR/opencode-ghostty-notifier.json"
+	need "$REPO_DIR/global/mechanical-commands.md" && cp "$REPO_DIR/global/mechanical-commands.md" "$GLOBAL_DIR/mechanical-commands.md"
+	if need "$REPO_DIR/global/agents/luna-runner.md"; then
+		mkdir -p "$GLOBAL_DIR/agents"
+		cp "$REPO_DIR/global/agents/luna-runner.md" "$GLOBAL_DIR/agents/luna-runner.md"
+	fi
 	need "$REPO_DIR/webpos/opencode.json" && cp "$REPO_DIR/webpos/opencode.json" "$WEBPOS_DIR/opencode.json"
 	if need "$REPO_DIR/webpos/dot-opencode/skills"; then
 		rsync -a --delete "$REPO_DIR/webpos/dot-opencode/skills/" "$WEBPOS_DIR/.opencode/skills/"

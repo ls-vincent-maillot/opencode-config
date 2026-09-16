@@ -45,6 +45,14 @@ resolved relative to the project root:
 - The root `AGENTS.md` of webPOS is read **natively**, so it is not listed in
   `instructions`.
 
+The global instruction file `~/.config/opencode/mechanical-commands.md` asks primary agents to
+delegate formatters, tests, linters, type checks, and builds to `luna-runner`. The instruction is
+soft routing: primary agents can still run other commands directly.
+
+`~/.config/opencode/agents/luna-runner.md` defines `luna-runner` as a hidden subagent pinned to
+`github-copilot/gpt-5.6-luna` with the `max` variant. Its Bash permissions block destructive Git
+operations, deletion, and further subagent creation.
+
 ## Skills
 
 Skills are folders containing a `SKILL.md` with YAML frontmatter. OpenCode searches

@@ -1,0 +1,17 @@
+---
+description: Batch independent tool calls and avoid repeated reads without reducing necessary verification
+alwaysApply: true
+---
+
+# Tool Call Efficiency
+
+Reduce round trips and repeated context while preserving the repository's safety and verification requirements.
+
+- Batch independent `Glob`, `Grep`, `Read`, and read-only shell calls in one message with parallel tool calls. Do not serialize calls unless one result determines the next call.
+- Request all known fields needed from an API in one read-only call instead of repeating the same request for individual fields.
+- For large files, locate relevant symbols with `Grep`, then `Read` a sufficient surrounding range. Do not reread unchanged files or the same ranges without a concrete reason.
+- For open-ended repository discovery, delegate one well-scoped exploration task instead of issuing many speculative searches, and do not duplicate delegated work.
+- Keep dependent commands sequential. Never parallelize Docker-backed PHPUnit runs or commands that share mutable test, credential, or database state.
+- Fresh safety checks are not redundant: repeat branch, status, authorization, and current-head checks immediately before operations whose correctness depends on current state.
+- Broaden searches and read sibling implementations when required by repository review or implementation rules. Token reduction must not replace contract tracing, behavioral verification, or test coverage.
+- Avoid shell command chains used only to combine unrelated reads. Prefer separate parallel tool calls so each result and failure remains visible.

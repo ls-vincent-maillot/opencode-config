@@ -1,0 +1,17 @@
+---
+description: Minimize tool-output token cost without hiding failures or weakening verification
+alwaysApply: true
+---
+
+# Tool Output Economy
+
+Reduce output before it enters the model context, but never at the expense of correctness, diagnostics, or required evidence.
+
+- Prefer dedicated `Glob`, `Grep`, and `Read` tools over shell equivalents. Use Bash only for commands that need a shell, such as `git`, `gh`, `make`, `docker`, and project CLIs.
+- Scope retrieval to the question: select known JSON fields with `--json`, `--jq`, or an API field filter; constrain logs by query and time range; select only needed SQL columns and rows.
+- Start with the narrowest scope that can answer the question, then broaden when results are incomplete or ambiguous. Do not apply arbitrary truncation when completeness is required.
+- Target the smallest relevant test file or test filter. Preserve the repository test command and inspect the complete diagnostic output when a test or build fails.
+- Never pipe tests, builds, or mutations through `grep`, `head`, `tail`, or another filter when it could hide an error or change the command's effective exit status.
+- Bound exploratory log output by time, query, or a reasonable line count. If absence is used as evidence, rerun with enough scope to support that conclusion.
+- Use aggregate queries such as `COUNT(*)` for counts instead of retrieving all matching records. Use `LIMIT` only for sampling, never to support an exhaustive claim.
+- Do not shorten output that contains an unknown contract, schema, error, or response shape. Discover the shape first, then request only the fields needed by follow-up calls.

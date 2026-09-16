@@ -1,0 +1,9 @@
+---
+description: Safe execution of targeted and Docker-backed PHPUnit tests
+alwaysApply: true
+---
+
+# PHPUnit Execution
+
+- Before running a targeted PHPUnit command, resolve the test file with Glob and copy its exact repository-relative path into `TEST_FILE`; do not reconstruct test paths from memory.
+- Run Docker-backed `php-test` invocations sequentially. Concurrent runs share ECR login, credential-helper, and tester database state.

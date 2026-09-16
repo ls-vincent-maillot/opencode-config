@@ -1,0 +1,15 @@
+---
+description: BigQuery execution is always user-proxied; ask the user to run queries
+alwaysApply: true
+---
+
+# BigQuery Is User-Proxied
+
+BigQuery execution is user-proxied in this workspace.
+
+- Never probe for, install, or report the absence of local BigQuery tooling such as `bq`, `gcloud`, `sqlfluff`, `duckdb`, or `psql`.
+- Never attempt to authenticate to BigQuery through a browser or local CLI.
+- Use the `bigquery-cdc-investigations` skill for schema, dataset, policy, and query-construction guidance.
+- When a query must be executed, ask the user to run it and return the results. Provide the exact query, required project, parameters, access requirements, and the specific redacted result sets needed.
+- Treat lack of local BigQuery execution as an expected workflow, not as a blocker or complaint in the final response.
+- Do not claim that a BigQuery query was validated or executed unless the user has provided the resulting output.

@@ -12,3 +12,19 @@ alwaysApply: true
 - Do not speculate about timelines, account configurations, user behavior, or deployment states unless you have direct evidence.
 
 This rule is the assistant's mirror of the human reviewer's "show your work" expectation — every claim should be anchored to something the human could re-verify if they wanted.
+
+## Verify every specific technical claim at the source before stating it
+
+A vague "I think" is not the failure mode this section targets — stating a **specific, checkable value as fact without having opened the actual source** is. Before asserting any concrete technical detail, open and read the exact code/data that backs it:
+
+- **Constants, timeouts, thresholds, config values, version numbers, line numbers** — read the actual definition on the actual code path. Never quote a number from memory, from a subagent/tool summary, or from a plausible-looking sibling.
+- **Which code path actually runs** — trace the real class/hierarchy/dispatch for the specific account/case, not a similarly-named class that "looks right." Confirm inheritance and overrides (e.g. a subclass may override the method you're citing).
+- **Inference vs. measurement** — if a number is derived (e.g. a duration read off log timestamps), label it as an inference and state what it does *not* establish. Do not upgrade an inference into a measured fact (e.g. "polls ran ~90s" ≠ "the processor took ~90s").
+
+### Raise the bar when the claim leaves this chat
+
+Extra verification is mandatory before a claim is put in front of anyone else — a **customer, another team, a Slack message, a JIRA ticket, a PR description, a review**. An error there wastes others' time and damages trust; a wrong constant or a wrong root-cause mechanism in a cross-team message is far more costly than in a scratchpad.
+
+### Real incident this section prevents (LSR-38623 / LSR-37006)
+
+Diagnosing a card-payment bug, I told the payments team "the POS poll gives up at 50s" and "the processor took ~90s to finalize." Both were wrong: (1) 50s was `BaseStripeTerminal._DEFAULT_MAX_POLLING` — the **wrong terminal class**; the account actually used `PaymentServiceTerminal`, which polls while `PENDING` with no 50s cutoff. I'd trusted a subagent's line reference instead of reading the real path. (2) "~90s to finalize" was the **poll duration** read off access-log timestamps, presented as processor latency I had no data for. The payments team caught both. The fix: open `PaymentServiceTerminal` on the actual `LightspeedPaymentsTerminal → PaymentServiceTerminal → Terminal` hierarchy before quoting its behavior, and label the ~90s as a log-derived inference, not a Stripe measurement.
