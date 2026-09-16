@@ -66,6 +66,32 @@ git clone git@github.com:ls-vincent-maillot/opencode-config.git ~/opencode-confi
 sync-opencode-config.sh --no-commit   # backup only, skip the commit
 ```
 
+## Session Export Utility
+
+The shared exporter in [`tools/export_session.py`](tools/export_session.py) exports an
+OpenCode session as JSON by default. It requires Python 3.10+ and the `opencode` CLI.
+
+```bash
+python3 tools/export_session.py ses_xxx --sanitize --cleanup -o session.json
+```
+
+Options:
+
+- `--sanitize` asks OpenCode to redact sensitive transcript and file data.
+- `--cleanup` removes internal fields, reasoning blocks, tool executions, lifecycle
+  parts, timestamps, IDs, and empty objects locally.
+- `--format rtf` exports an RTF document instead of JSON; macOS `textutil` is required.
+
+If no session ID is supplied, the utility lists the 10 latest sessions:
+
+```bash
+python3 tools/export_session.py
+```
+
+If a supplied session ID cannot be found, it reports the error and prints the same list
+so the correct ID can be selected. Generated `ses_*.json` and `ses_*.rtf` files are ignored
+by Git.
+
 ## Documentation
 
 - [`docs/MIGRATION.md`](docs/MIGRATION.md) — full record of the Cursor → OpenCode
