@@ -60,6 +60,7 @@
   "disabled_providers": [],
   "agent": {
     "build": {
+      "model": "github-copilot/gpt-5.6-luna",
       "variant": "max"
     },
     "coderLama": {
