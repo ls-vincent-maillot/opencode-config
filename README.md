@@ -94,6 +94,8 @@ by Git.
 
 ## Documentation
 
+- [`docs/BIGQUERY-DIRECT-EXECUTION.md`](docs/BIGQUERY-DIRECT-EXECUTION.md) — configure
+  OpenCode to run approved R-Series BigQuery queries locally.
 - [`docs/MIGRATION.md`](docs/MIGRATION.md) — full record of the Cursor → OpenCode
   migration: what moved where, what wasn't portable, and the decisions taken.
 - [`docs/OPENCODE-CONFIG-REFERENCE.md`](docs/OPENCODE-CONFIG-REFERENCE.md) — how
