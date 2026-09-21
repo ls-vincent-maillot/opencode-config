@@ -1,15 +1,24 @@
 ---
-description: BigQuery execution is always user-proxied; ask the user to run queries
+description: BigQuery execution requires explicit user approval of the exact query before local execution
 alwaysApply: true
 ---
 
-# BigQuery Is User-Proxied
+# BigQuery Requires Query Approval
 
-BigQuery execution is user-proxied in this workspace.
+BigQuery execution is local and agent-run only after the user explicitly
+approves the exact SQL and execution parameters shown by the agent.
 
-- Never probe for, install, or report the absence of local BigQuery tooling such as `bq`, `gcloud`, `sqlfluff`, `duckdb`, or `psql`.
-- Never attempt to authenticate to BigQuery through a browser or local CLI.
 - Use the `bigquery-cdc-investigations` skill for schema, dataset, policy, and query-construction guidance.
-- When a query must be executed, ask the user to run it and return the results. Provide the exact query, required project, parameters, access requirements, and the specific redacted result sets needed.
-- Treat lack of local BigQuery execution as an expected workflow, not as a blocker or complaint in the final response.
-- Do not claim that a BigQuery query was validated or executed unless the user has provided the resulting output.
+- Use the `bigquery-direct-execution` skill for local `bq` execution.
+- Before any `bq query`, including a dry run, show the complete SQL, billing
+  project, source tables, filters, time range, and byte limit to the user.
+- Ask the user to verify that exact query and explicitly approve execution.
+- Do not run a dry run or execution until that approval is received.
+- If the SQL or execution parameters change, ask for approval again.
+- Run R-Series jobs in `ls-infra-retail-001-data-prd` and read data from
+  fully qualified `ls-data-platform-prd` tables. Never silently substitute
+  X-Series resources.
+- BigQuery access remains read-only: never issue DDL, DML, or other mutation
+  statements.
+- Never print credentials, tokens, environment-file values, or credential-file
+  contents.
