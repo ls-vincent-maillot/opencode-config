@@ -81,7 +81,7 @@ Restricted fields fail with *"Access Denied: ... policy tag …"*. Known example
 ## Workflow
 
 1. **Reuse ticket queries** when present (`query_S1_current_state.sql` / `query_S2_cdc_history.sql`); edit the DECLAREs.
-2. **Verify, don't guess.** Run a query and quote the rows — don't infer prod state from local DB or codebase reading.
+2. **Verify, don't guess.** Run an approved query through `bigquery-direct-execution` and quote the rows — don't infer prod state from local DB or codebase reading.
 3. **Cross-check unfamiliar columns** against `includes/database/bs_<table>.class.php` (1:1 with `curr_<col>`). If working from PHP ORM names, translate via `$_map` in `includes/data/io/sql/<Model>.class.php` — BQ uses MySQL column names, not ORM names.
 4. **Distinguish "the DB shows X" from "the code path appears to do X".** Name which one you're reporting.
 5. **No writes against BigQuery.** Fixes are MariaDB UPDATEs for the DBA; stage scripts under `~/Documents/AgentFiles/`.
